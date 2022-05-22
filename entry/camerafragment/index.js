@@ -32,8 +32,8 @@ export default class CameraFragment {
             .then((instance) => {return instance.hasFlash()
                 .then((status) => {return status})})){
             this.cameraInput.then((instance) => {
-                this.flashMode += 1;
-                return instance.setFlashMode((this.flashMode)%4)
+                this.flashMode = (this.flashMode + 1)%4;
+                return instance.setFlashMode(this.flashMode)
                     .then(() => {
                         console.log("Flash Mode toggled.")
                     })
@@ -49,11 +49,54 @@ export default class CameraFragment {
 
     capturePhoto(surfaceId){
         this.photoOutput = this.cameraObj.createPhotoOutput(surfaceId)
-            .then((photoOutput) => {return photoOutput })
+            .then((photoOutput) => {return photoOutput });
+
         this.photoOutput.capture(this.photoCaptureSettings)
-            .then()
-            .then()
+            .then((err) => {
+                if(err){
+                    console.log("Photo couldn't be captured due to : ${err.message}");
+                    return;
+                }
+                console.log("Photo captured successfully.")
+            });
+
+        this.photoOutput.release()
+            .then(() => {
+                console.log("PhotoCapture instance released.")
+            })
     }
 
+    // Function to start capturing a video\
+    startVideoCapture(surfaceId){
+        this.videoOutput = this.cameraObj.createVideoOutput(surfaceId)
+            .then((videoOutput) => {return videoOutput});
+        this.videoOutput.start()
+            .then((err) => {
+                if (err) {
+                    console.log("Video capture couldn't start due to : ${err.message}.");
+                    return;
+                }
 
+                console.log("Video capture session has started.")
+            })
+    }
+
+    stopVideoCapture(){
+        this.videoOutput.stop((err) => {
+            if(err){
+                console.log("Failed to stop capturing video due to : ${err.message}");
+                return;
+            }
+            console.log("Video capture stopped successfully.");
+
+            this.videoOutput.release().then((err) => {
+                if(err){
+                    console.log("VideoCapture instance couldn't be released due to : ${err.message}");
+                    return;
+                }
+
+                console.log("VideoCapture instance is released successfully.");
+            })
+        })
+    }
 }
